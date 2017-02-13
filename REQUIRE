@@ -1,1 +1,6 @@
 julia 0.5
+IJulia 1.4.1
+JuMP 0.15.1
+Gurobi 0.3.0
+BenchmarkTools 0.0.7
+Plots 0.10.3
