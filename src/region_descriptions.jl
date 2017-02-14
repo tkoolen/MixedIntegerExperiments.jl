@@ -1,60 +1,40 @@
-immutable RegionDescription{T}
-    A::Matrix{T}
-    b::Vector{T}
-    l::Vector{T}
-    u::Vector{T}
+immutable EnvironmentRegionDescription{N, T}
+    position::SimpleHRepresentation{N, T}
+    force::SimpleHRepresentation{N, T}
 end
 
-immutable EnvironmentRegionDescription{T}
-    position::RegionDescription{T}
-    force::RegionDescription{T}
+function lphrep_with_bounds(vr::VRepresentation)
+    hr = hrep(polyhedron(vr, CDDLibrary()))
+    lphr = LPHRepresentation(hr)
+    l, u = axis_aligned_bounding_box(vr)
+    LPHRepresentation(lphr.A, l, u, lphr.lb, lphr.ub)
 end
 
 # Forces
 function friction_cone_constraints(n, μ, fnmax)
     n⟂ = perp(n)
-    β1 = normalize(n + μ * n⟂)
-    β2 = normalize(n - μ * n⟂)
-    Af = [-perp(β1) perp(β2)]'
-    bf = zeros(2)
-    Af, bf
-    fₗ = min.(β1 * fnmax, β2 * fnmax, zeros(2))
-    fᵤ = max.(β1 * fnmax, β2 * fnmax, zeros(2))
-    RegionDescription(Af, bf, fₗ, fᵤ)
+    β1 = normalize(n + μ * n⟂) * fnmax
+    β2 = normalize(n - μ * n⟂) * fnmax
+    vr = SimpleVRepresentation([zeros(1, length(n⟂)); β1'; β2'])
+    SimpleHRepresentation(hrep(polyhedron(vr, CDDLibrary())))
 end
 
-function no_force_constraints()
-    Af = [eye(2); -eye(2)]
-    bf = zeros(4)
-    fₗ = zeros(2)
-    fᵤ = zeros(2)
-    RegionDescription(Af, bf, fₗ, fᵤ)
+function no_force_constraints(n)
+    vr = SimpleVRepresentation(zeros(1, n))
+    SimpleHRepresentation(hrep(polyhedron(vr, CDDLibrary())))
 end
 
 # Positions
 function line_segment_constraints(p1, p2)
-    v = normalize(p2 - p1)
-    n = perp(v)
-
-    # vᵀ (r - p1) ≥ 0 ⇒ vᵀ r ≥ vᵀ p1
-    # vᵀ (r - p1) ≤ 1 ⇒ -vᵀ r ≥ -(1  + vᵀ p1)
-    # nᵀ (r - p1) ≥ 0 ⇒ nᵀ r ≥ nᵀ p1
-    # nᵀ (r - p1) ≤ 0 ⇒ -nᵀ r ≥ -nᵀ p1
-
-    Ar = [v'; -v'; n'; -n']
-    br = [v ⋅ p1; -(1 + v ⋅ p1); n ⋅ p1; -n ⋅ p1]
-    rₗ = min.(p1, p2)
-    rᵤ = max.(p1, p2)
-    RegionDescription(Ar, br, rₗ, rᵤ)
+    vr = SimpleVRepresentation([p1'; p2'])
+    SimpleHRepresentation(hrep(polyhedron(vr, CDDLibrary())))
 end
 
-function axis_aligned_free_box(p1, p2, xaxis)
-    zaxis = perp(xaxis)
-    rₗ = min.(p1, p2)
-    rᵤ = max.(p1, p2)
-    Ar = [xaxis'; -xaxis'; zaxis'; -zaxis']
-    br = [xaxis ⋅ rₗ; -xaxis ⋅ rᵤ; zaxis ⋅ rₗ; -zaxis ⋅ rᵤ]
-    RegionDescription(Ar, br, rₗ, rᵤ)
+function axis_aligned_free_box(p1, p2)
+    l = min.(p1, p2)
+    u = max.(p1, p2)
+    n = length(l)
+    SimpleHRepresentation([eye(n); -eye(n)], [u; -l])
 end
 
 # Position × Force environment regions
@@ -65,8 +45,8 @@ function contact_region(p1, p2, μ, fnmax)
     EnvironmentRegionDescription(position, force)
 end
 
-function axis_aligned_free_box_region(p1, p2, xaxis)
-    position = axis_aligned_free_box(p1, p2, xaxis)
-    force = no_force_constraints()
+function axis_aligned_free_box_region(p1, p2)
+    position = axis_aligned_free_box(p1, p2)
+    force = no_force_constraints(length(p1))
     EnvironmentRegionDescription(position, force)
 end
