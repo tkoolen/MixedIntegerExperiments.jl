@@ -12,11 +12,49 @@ function axis_aligned_bounding_box(rep::HRepresentation)
     axis_aligned_bounding_box(vrep(polyhedron(rep, CDDLibrary())))
 end
 
-function plot_region!(region::Polyhedron, plt::Plots.Plot = current(); kwargs...)
-    xs, ys = Float64[], Float64[]
-    for point in points(vrep(region))
-        push!(xs, point[1])
-        push!(ys, point[2])
+function hrep_to_constraints(model::Model, hr::HRepresentation, vars::Vector{Variable})
+    for ineq in ineqs(hr)
+        @constraint(model, ineq.a ⋅ vars <= ineq.β)
     end
-    plot!(Shape(xs, ys); kwargs...)
+    for eq in eqs(hr)
+        @constraint(model, eq.a ⋅ vars == eq.β)
+    end
 end
+
+function mccormick_envelope_constraints(model::Model, w::Variable, u::Variable, v::Variable, umin, umax, vmin, vmax)
+    # convex approximation of w == u * v on u ∈ [umin, umax], v ∈ [vmin, vmax]
+    vertices = [umin vmin umin * vmin; umax vmax umax * vmax; umax vmin umax * vmin; umin vmax umin * vmax]
+    vr = SimpleVRepresentation(vertices)
+    hr = SimpleHRepresentation(hrep(polyhedron(vr, CDDLibrary())))
+    hrep_to_constraints(model, hr, [u; v; w])
+end
+
+# TODO: use in test:
+# function mccormick_envelope_constraints(model::Model, w::Variable, u::Variable, v::Variable, umin, umax)
+#     # convex approximation of w == u * v for u ∈ [umin, umax], v ∈ [0, 1]
+#     # 4.21
+#     @constraints(model, begin
+#         w >= umin * v
+#         w >= umax * v + u - umax
+#         w <= umin * v + u - umin
+#         w <= umax * v
+#         umin <= u
+#         u <= umax
+#     end)
+# end
+
+# function mccormick_envelope_constraints(model::Model, w::Variable, u::Variable, v::Variable)
+#     # convex approximation of w == u * v for u ∈ [0, 1], v ∈ [0, 1]
+#     # 4.20
+#     for u ∈ [0, 1], v ∈ [0, 1]
+#     @constraints(model, begin
+#         w <= v
+#         w <= u
+#         w >= u + v - 1
+#         0 <= u
+#         u <= 1
+#         0 <= v
+#         v <= 1
+#         0 <= w
+#     end)
+# end
