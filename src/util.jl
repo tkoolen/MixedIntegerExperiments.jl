@@ -11,3 +11,12 @@ end
 function axis_aligned_bounding_box(rep::HRepresentation)
     axis_aligned_bounding_box(vrep(polyhedron(rep, CDDLibrary())))
 end
+
+function plot_region!(region::Polyhedron, plt::Plots.Plot = current(); kwargs...)
+    xs, ys = Float64[], Float64[]
+    for point in points(vrep(region))
+        push!(xs, point[1])
+        push!(ys, point[2])
+    end
+    plot!(Shape(xs, ys); kwargs...)
+end
