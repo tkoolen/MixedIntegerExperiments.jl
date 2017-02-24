@@ -5,8 +5,9 @@ using Base.Test
 import MixedIntegerExperiments: perp
 
 @testset "util" begin
-    using Base.Test
-    pcart = cartesian_product(p1, p2)
+    p1 = SimpleHRepresentation(rand(2, 2), rand(2))
+    p2 = SimpleHRepresentation(rand(2, 2), rand(2))
+    pcart = p1 * p2
     @test fulldim(pcart) == fulldim(p1) + fulldim(p2)
     vr1, vr2, vrcart = map(p -> vrep(polyhedron(p)), (p1, p2, pcart))
     for v1 in points(vr1), v2 in points(vr2)

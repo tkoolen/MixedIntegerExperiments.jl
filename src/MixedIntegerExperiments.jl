@@ -6,6 +6,7 @@ using Plots
 using DrakeVisualizer
 using ColorTypes
 using FixedSizeArrays
+using AxisArrays
 
 include("util.jl")
 include("region_descriptions.jl")
@@ -21,6 +22,6 @@ export
     hrep_to_constraints,
     mccormick_envelope_constraints,
     hull_reformulation,
-    cartesian_product
+    @axis_variables
 
 end # module
