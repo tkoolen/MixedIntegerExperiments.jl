@@ -40,7 +40,7 @@ function mccormick_envelope_constraints(model::Model, w::Variable, u::Variable, 
     hrep_to_constraints(model, hr, [u; v; w])
 end
 
-function hull_reformulation{HR<:HRepresentation}(model::Model, regions::Vector{HR}, x::Vector{Variable})
+function hull_reformulation{HR<:HRepresentation}(model::Model, regions::Vector{HR}, x::AbstractVector{Variable})
     n = length(x)
     R = length(regions)
     @boundscheck begin
