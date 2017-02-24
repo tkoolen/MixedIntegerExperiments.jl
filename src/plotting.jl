@@ -20,7 +20,7 @@ function plot_piecewise_mccormick(N, umin, umax, vmin, vmax)
     setgeometry!(vis[:exact], GeometryData(mesh, green))
 
     for i = 1 : N
-        m = Model();
+        m = Model()
         @variables(m, begin
             u
             v

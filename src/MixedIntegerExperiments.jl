@@ -19,6 +19,8 @@ export
     axis_aligned_free_box_region,
     plot_polyhedron!,
     hrep_to_constraints,
-    mccormick_envelope_constraints
+    mccormick_envelope_constraints,
+    hull_reformulation,
+    cartesian_product
 
 end # module
