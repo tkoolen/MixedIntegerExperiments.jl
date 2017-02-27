@@ -10,6 +10,8 @@ using AxisArrays
 
 include("util.jl")
 include("region_descriptions.jl")
+include("disjoint_union.jl")
+include("mccormick.jl")
 include("plotting.jl")
 
 export
