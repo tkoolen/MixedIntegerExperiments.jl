@@ -1,6 +1,8 @@
 function plot_polyhedron!(region::Polyhedron, plt::Plots.Plot = current(); kwargs...)
     xs, ys = Float64[], Float64[]
-    for point in points(vrep(region))
+    cross2 = (p1, p2) -> p1[2] * p2[1] - p1[1] * p2[2]
+    points_clockwise = sort(collect(points(vrep(region))), lt = (p1, p2) -> cross2(p1, p2) <= 0)
+    for point in points_clockwise
         push!(xs, point[1])
         push!(ys, point[2])
     end

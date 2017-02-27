@@ -12,13 +12,18 @@ function axis_aligned_bounding_box(rep::HRepresentation)
     axis_aligned_bounding_box(vrep(polyhedron(rep, CDDLibrary())))
 end
 
-function hrep_to_constraints(model::Model, hr::HRepresentation, vars::Vector{Variable})
-    for ineq in ineqs(hr)
+function polyhedron_constraints(model::Model, rep::HRepresentation, vars::AbstractVector{Variable})
+    for ineq in ineqs(rep)
         @constraint(model, ineq.a ⋅ vars <= ineq.β)
     end
-    for eq in eqs(hr)
+    for eq in eqs(rep)
         @constraint(model, eq.a ⋅ vars == eq.β)
     end
+end
+
+function polyhedron_constraints(model::Model, rep::VRepresentation, vars::AbstractVector{Variable})
+    hr = SimpleHRepresentation(hrep(polyhedron(rep, CDDLibrary())))
+    polyhedron_constraints(model, hr, vars)
 end
 
 macro axis_variables(m, var, axes...)

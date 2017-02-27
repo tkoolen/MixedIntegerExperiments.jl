@@ -3,5 +3,5 @@ function mccormick_envelope_constraints(model::Model, w::Variable, u::Variable, 
     vertices = [umin vmin umin * vmin; umax vmax umax * vmax; umax vmin umax * vmin; umin vmax umin * vmax]
     vr = SimpleVRepresentation(vertices)
     hr = SimpleHRepresentation(hrep(polyhedron(vr, CDDLibrary())))
-    hrep_to_constraints(model, hr, [u; v; w])
+    polyhedron_constraints(model, hr, [u; v; w])
 end

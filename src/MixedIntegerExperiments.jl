@@ -21,7 +21,7 @@ export
     contact_region,
     axis_aligned_free_box_region,
     plot_polyhedron!,
-    hrep_to_constraints,
+    polyhedron_constraints,
     mccormick_envelope_constraints,
     hull_reformulation,
     @axis_variables

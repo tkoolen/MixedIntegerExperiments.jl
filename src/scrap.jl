@@ -6,8 +6,8 @@
 # for j = 1 : nregions
 #     region = regions[j]
 #     for i = 1 : ncontacts, n = 1 : nsteps
-#         hrep_to_constraints(model, region.position, r̂[:, i, j, n])
-#         hrep_to_constraints(model, region.force, f̂[:, i, j, n])
+#         polyhedron_constraints(model, region.position, r̂[:, i, j, n])
+#         polyhedron_constraints(model, region.force, f̂[:, i, j, n])
 #     end
 #     lr, ur = axis_aligned_bounding_box(region.position)
 #     lf, uf = axis_aligned_bounding_box(region.force)
