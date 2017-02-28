@@ -1,6 +1,11 @@
-immutable EnvironmentRegionDescription{N, T}
+immutable EnvironmentRegion{N, T}
     position::SimpleHRepresentation{N, T}
     force::SimpleHRepresentation{N, T}
+end
+
+function isfree(region::EnvironmentRegion)
+    vr = vrep(polyhedron(region.force))
+    !hasrays(vr) && all(all(p .== 0) for p in points(vr))
 end
 
 function lphrep_with_bounds(vr::VRepresentation)
@@ -20,8 +25,7 @@ function friction_cone_constraints(n, μ, fnmax)
 end
 
 function no_force_constraints(n)
-    vr = SimpleVRepresentation(zeros(1, n))
-    SimpleHRepresentation(hrep(polyhedron(vr, CDDLibrary())))
+    SimpleHRepresentation(eye(2), zeros(2), IntSet([1, 2]))
 end
 
 # Positions
@@ -42,11 +46,11 @@ function contact_region(p1, p2, μ, fnmax)
     n = normalize(perp(p2 - p1))
     position = line_segment_constraints(p1, p2)
     force = friction_cone_constraints(n, μ, fnmax)
-    EnvironmentRegionDescription(position, force)
+    EnvironmentRegion(position, force)
 end
 
 function axis_aligned_free_box_region(p1, p2)
     position = axis_aligned_free_box(p1, p2)
     force = no_force_constraints(length(p1))
-    EnvironmentRegionDescription(position, force)
+    EnvironmentRegion(position, force)
 end

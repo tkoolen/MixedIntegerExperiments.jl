@@ -14,7 +14,7 @@ end
 
 function polyhedron_constraints(model::Model, rep::HRepresentation, vars::AbstractVector{Variable})
     for ineq in ineqs(rep)
-        @constraint(model, ineq.a ⋅ vars <= ineq.β)
+        @constraint(model, ineq.a ⋅ vars <= ineq.β)c
     end
     for eq in eqs(rep)
         @constraint(model, eq.a ⋅ vars == eq.β)

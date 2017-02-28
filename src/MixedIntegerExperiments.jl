@@ -16,9 +16,10 @@ include("plotting.jl")
 
 export
     RegionDescription,
-    EnvironmentRegionDescription,
+    EnvironmentRegion,
     axis_aligned_bounding_box,
     contact_region,
+    isfree,
     axis_aligned_free_box_region,
     plot_polyhedron!,
     polyhedron_constraints,
