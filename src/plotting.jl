@@ -36,3 +36,33 @@ function plot_piecewise_mccormick(N, umin, umax, vmin, vmax)
     end
     vis
 end
+
+function plot_environment{T<:EnvironmentRegion}(environment::AbstractVector{T})
+    plt = plot()
+    for region in environment
+        kwargs = if isfree(region)
+            ((:lab, "free"), (:color, "blue"), (:opacity, 0.1))
+        else
+            ((:lab, "contact"), (:fillcolor, "black"))
+        end
+        plot_polyhedron!(polyhedron(region.position); kwargs...)
+    end
+    title!(plt, "Environment")
+    display(plt)
+end
+
+function plot_allowable_forces(region::EnvironmentRegion, id)
+    plt = plot()
+    plot_polyhedron!(polyhedron(region.force); opacity = 0.5, lab = "")
+    title!("Allowable contact forces, region $id")
+    display(plt)
+end
+
+function plot_kinematic_regions{T<:VRepresentation}(contact_kinematic_regions::Dict{Symbol, T})
+    plt = plot()
+    for (name, kinematic_region) in contact_kinematic_regions
+        plot_polyhedron!(polyhedron(kinematic_region); lab = string(name), opacity = 0.5)
+    end
+    title!("Kinematic reachability relative to CoM")
+    display(plt)
+end
