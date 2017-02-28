@@ -30,7 +30,8 @@ function plot_piecewise_mccormick(N, umin, umax, vmin, vmax)
         end)
         umin_piece = umin + (i - 1) * (umax - umin) / N
         umax_piece = umin + i * (umax - umin) / N
-        mccormick_envelope_constraints(m, w, u, v, umin_piece, umax_piece, vmin, vmax)
+        envelope = mccormick_envelope(m, u, v, w, umin_piece..umax_piece, vmin..vmax)
+        polyhedron_constraints(m, envelope, [u; v; w])
         poly = polyhedron(m, CDDLibrary(:exact))
         setgeometry!(vis[:mccormick][Symbol("piece$i")], GeometryData(poly, red))
     end

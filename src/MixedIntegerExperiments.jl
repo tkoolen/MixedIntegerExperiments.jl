@@ -26,7 +26,8 @@ export
     plot_allowable_forces,
     plot_kinematic_regions,
     polyhedron_constraints,
-    mccormick_envelope_constraints,
+    mccormick_envelope,
+    piecewise_mccormick_envelope_constraints,
     hull_reformulation,
     @axis_variables
 
