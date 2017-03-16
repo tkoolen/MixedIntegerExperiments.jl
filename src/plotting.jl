@@ -49,14 +49,14 @@ function plot_environment{T<:EnvironmentRegion}(environment::AbstractVector{T})
         plot_polyhedron!(polyhedron(region.position); kwargs...)
     end
     title!(plt, "Environment")
-    display(plt)
+    plt
 end
 
 function plot_allowable_forces(region::EnvironmentRegion, id)
     plt = plot()
     plot_polyhedron!(polyhedron(region.force); opacity = 0.5, lab = "")
     title!("Allowable contact forces, region $id")
-    display(plt)
+    plt
 end
 
 function plot_kinematic_regions{T<:VRepresentation}(contact_kinematic_regions::Dict{Symbol, T})
@@ -65,5 +65,5 @@ function plot_kinematic_regions{T<:VRepresentation}(contact_kinematic_regions::D
         plot_polyhedron!(polyhedron(kinematic_region); lab = string(name), opacity = 0.5)
     end
     title!("Kinematic reachability relative to CoM")
-    display(plt)
+    plt
 end
