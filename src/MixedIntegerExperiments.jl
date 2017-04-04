@@ -7,12 +7,16 @@ using DrakeVisualizer
 using ColorTypes
 using FixedSizeArrays
 using AxisArrays
+using RigidBodyDynamics
+using MomentumBasedControl
+using StaticArrays
 
 include("util.jl")
 include("region_descriptions.jl")
 include("disjoint_union.jl")
 include("mccormick.jl")
 include("plotting.jl")
+include("shouldbeelsewhere.jl")
 
 export
     RegionDescription,
