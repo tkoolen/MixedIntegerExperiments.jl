@@ -1,4 +1,4 @@
-function plot_polyhedron!(region::Polyhedron, plt::Plots.Plot = current(); kwargs...)
+function plot_polyhedron!(region::Polyhedron, plt = current(); kwargs...)
     xs, ys = Float64[], Float64[]
     cross2 = (p1, p2) -> p1[2] * p2[1] - p1[1] * p2[2]
     points_clockwise = sort(collect(points(vrep(region))), lt = (p1, p2) -> cross2(p1, p2) <= 0)
@@ -10,7 +10,7 @@ function plot_polyhedron!(region::Polyhedron, plt::Plots.Plot = current(); kwarg
 end
 
 function plot_piecewise_mccormick(N, umin, umax, vmin, vmax)
-    DrakeVisualizer.any_open_windows() || DrakeVisualizer.new_window()
+    DrakeVisualizer.any_open_windows() || (DrakeVisualizer.new_window(); sleep(1))
     vis = Visualizer()
 
     wmin = minimum(u * v for u in (umin, umax), v in (vmin, vmax))
@@ -18,7 +18,7 @@ function plot_piecewise_mccormick(N, umin, umax, vmin, vmax)
     f = uvw -> uvw[1] * uvw[2] - uvw[3]
     mesh = contour_mesh(f, Vec(umin, vmin, wmin), Vec(umax, vmax, wmax))
     green = RGBA(0., 1, 0, 1.0)
-    red = RGBA(1., 0, 0, 1.0)
+    red = RGBA(1., 0, 0, 0.5)
     setgeometry!(vis[:exact], GeometryData(mesh, green))
 
     for i = 1 : N
