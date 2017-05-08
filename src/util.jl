@@ -26,7 +26,7 @@ function polyhedron_constraints(model::Model, rep::VRepresentation, vars::Abstra
     polyhedron_constraints(model, hr, vars)
 end
 
-JuMP.getvalue(A::AxisArray) = AxisArray(JuMP.getvalue(A), A.axes)
+JuMP.getvalue(A::AxisArray) = AxisArray(JuMP.getvalue(A.data), A.axes)
 
 # TODO: use in test:
 # function mccormick_envelope_constraints(model::Model, w::Variable, u::Variable, v::Variable, umin, umax)
