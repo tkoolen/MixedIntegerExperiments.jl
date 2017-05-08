@@ -26,15 +26,6 @@ function polyhedron_constraints(model::Model, rep::VRepresentation, vars::Abstra
     polyhedron_constraints(model, hr, vars)
 end
 
-macro axis_variables(m, var, axes...)
-    ranges = map(axis -> :(1 : length($axis)), axes)
-    ret = quote
-        vars = @variable $m $var[$(ranges...)]
-        $(Expr(:call, :AxisArray, :vars, axes...))
-    end
-    esc(ret)
-end
-
 # TODO: use in test:
 # function mccormick_envelope_constraints(model::Model, w::Variable, u::Variable, v::Variable, umin, umax)
 #     # convex approximation of w == u * v for u ∈ [umin, umax], v ∈ [0, 1]
