@@ -2,6 +2,7 @@ immutable EnvironmentRegion{N, T}
     position::SimpleHRepresentation{N, T}
     force::SimpleHRepresentation{N, T}
 end
+dimension{N, T}(::Type{EnvironmentRegion{N, T}}) = N
 
 function isfree(region::EnvironmentRegion)
     vr = vrep(polyhedron(region.force))
@@ -53,4 +54,17 @@ function axis_aligned_free_box_region(p1, p2)
     position = axis_aligned_free_box(p1, p2)
     force = no_force_constraints(length(p1))
     EnvironmentRegion(position, force)
+end
+
+function force_bounds{T<:EnvironmentRegion}(environment::AbstractVector{T})
+    # TODO: could do this on a contact-by-contact basis if certain contact-region assignments are not allowed
+    n = dimension(T)
+    fmin = zeros(n)
+    fmax = zeros(n)
+    for region in environment
+        fl, fu = axis_aligned_bounding_box(region.force)
+        fmin .= min.(fmin, fl)
+        fmax .= max.(fmax, fu)
+    end
+    fmin, fmax
 end

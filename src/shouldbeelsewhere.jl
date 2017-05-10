@@ -1,5 +1,6 @@
 export visualize_environment
 
+using RigidBodyDynamics
 using DrakeVisualizer, CoordinateTransformations, FixedSizeArrays, ColorTypes, Rotations
 using RigidBodyDynamics.Contact
 

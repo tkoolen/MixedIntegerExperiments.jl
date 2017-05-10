@@ -1,15 +1,17 @@
 module MixedIntegerExperiments
 
 using JuMP
+using Gurobi
+using MultilinearOpt
 using Polyhedra, CDDLib
 using Plots
 using DrakeVisualizer
 using ColorTypes
 using FixedSizeArrays
+using AxisArrayVariables
 using AxisArrays
-using RigidBodyDynamics
-using MomentumBasedControl
 using StaticArrays
+using Parameters
 
 include("util.jl")
 include("region_descriptions.jl")
@@ -17,10 +19,16 @@ include("disjoint_union.jl")
 include("mccormick.jl")
 include("plotting.jl")
 include("shouldbeelsewhere.jl")
+include("trajopt.jl")
 
 export
     RegionDescription,
     EnvironmentRegion,
+    MIQPTrajOptParams,
+    ContactPointDescription,
+    BoxRobotWithRotation2D,
+    ContactPointState,
+    BoxRobotWithRotation2DState,
     axis_aligned_bounding_box,
     contact_region,
     isfree,
@@ -29,10 +37,7 @@ export
     plot_environment,
     plot_allowable_forces,
     plot_kinematic_regions,
-    polyhedron_constraints,
-    mccormick_envelope,
-    piecewise_mccormick_envelope_constraints,
-    hull_reformulation,
-    @axis_variables
+    miqp_trajopt,
+    constraint_violation_norm
 
 end # module
