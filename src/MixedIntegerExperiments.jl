@@ -20,6 +20,7 @@ include("mccormick.jl")
 include("plotting.jl")
 include("shouldbeelsewhere.jl")
 include("trajopt.jl")
+include("boxrobotsinterop.jl")
 
 export
     RegionDescription,
@@ -29,6 +30,7 @@ export
     BoxRobotWithRotation2D,
     ContactPointState,
     BoxRobotWithRotation2DState,
+    ContactPointInput,
     axis_aligned_bounding_box,
     contact_region,
     isfree,
