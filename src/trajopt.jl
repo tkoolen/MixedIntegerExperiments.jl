@@ -2,6 +2,7 @@
     nsteps::Int = 10
     Δt::Float64 = 0.1
     bilinearmethod::Symbol = :Logarithmic1D
+    disc_level::Int = 9
     verbose::Bool = true
 end
 
@@ -57,10 +58,11 @@ function MIQPTrajOptDiagnostics(solvetime::Float64, ss, fs, wzxs, wxzs)
 end
 
 function miqp_trajopt{E<:EnvironmentRegion}(robot::BoxRobotWithRotation2D, environment::AbstractVector{E},
-        initialstate::BoxRobotWithRotation2DState, optparams::MIQPTrajOptParams)
-    nsteps = optparams.nsteps
-    h = optparams.Δt
-    bilinearmethod = optparams.bilinearmethod
+        initialstate::BoxRobotWithRotation2DState, params::MIQPTrajOptParams)
+    nsteps = params.nsteps
+    h = params.Δt
+    bilinearmethod = params.bilinearmethod
+    disc_level = params.disc_level
 
     coords = Axis{:coord}([:x, :z])
     steps = Axis{:step}(1 : nsteps)
@@ -79,7 +81,7 @@ function miqp_trajopt{E<:EnvironmentRegion}(robot::BoxRobotWithRotation2D, envir
     m = robot.m
     g = robot.g
 
-    model = Model(solver = GurobiSolver(Presolve = 0, OutputFlag = Int(optparams.verbose)))
+    model = Model(solver = GurobiSolver(Presolve = 0, OutputFlag = Int(params.verbose)))
 
     rs = @axis_variable(model, r[coords, steps])
     θs = @axis_variable(model, θ[steps])
@@ -138,7 +140,7 @@ function miqp_trajopt{E<:EnvironmentRegion}(robot::BoxRobotWithRotation2D, envir
     end
 
     # kinematic constraints
-    setlowerbound.(rs[:z], 0.55) # TODO
+    # setlowerbound.(rs[:z], 0.55) # TODO
     setlowerbound.(θs, -θmax)
     setupperbound.(θs, θmax)
 
@@ -187,8 +189,15 @@ function miqp_trajopt{E<:EnvironmentRegion}(robot::BoxRobotWithRotation2D, envir
             f = fs[contacts(i), steps(n)]
             setlowerbound.(s, smin)
             setupperbound.(s, smax)
-            @constraint(model, wxz == s[:x] * f[:z])
-            @constraint(model, wzx == s[:z] * f[:x])
+            if bilinearmethod == :HRepConvexHull
+                srange = AxisArray(linspace.(smin, smax, disc_level), coords)
+                fmin, fmax = getlowerbound(f), getupperbound(f)
+                piecewise_mccormick_envelope_constraints(model, s[:x], f[:z], wxz, srange[:x], fmin[:z]..fmax[:z])
+                piecewise_mccormick_envelope_constraints(model, s[:z], f[:x], wzx, srange[:z], fmin[:x]..fmax[:x])
+            else
+                @constraint(model, wxz == s[:x] * f[:z])
+                @constraint(model, wzx == s[:z] * f[:x])
+            end
         end
     end
 
@@ -208,7 +217,7 @@ function miqp_trajopt{E<:EnvironmentRegion}(robot::BoxRobotWithRotation2D, envir
 
     # final conditions
     @constraints(model, begin
-        rs[steps(length(steps))] .== [0.7; 0.9]
+        rs[steps(length(steps))] .== [0.81; 0.9]
         θs[steps(length(steps))] == 0
         ṙs[steps(length(steps))] .== 0
         ωs[steps(length(steps))] == 0
@@ -230,7 +239,9 @@ function miqp_trajopt{E<:EnvironmentRegion}(robot::BoxRobotWithRotation2D, envir
     @objective(model, Min, 1e3 * sum(Γ) + 1e-3 * vecdot(Fs, Fs) + 1e-5 * vecdot(fs, fs) + 1e-2 * vecdot(δs, δs) + vecdot(θs, θs))
 
     # relax bilinear constraints
-    relaxbilinear!(model, method = bilinearmethod)
+    if bilinearmethod != :HRepConvexHull # just to make sure, but probably not even necessary to do this check
+        relaxbilinear!(model, method = bilinearmethod, disc_level = disc_level)
+    end
 
     # solve
     status, solvetime = @timed solve(model)
