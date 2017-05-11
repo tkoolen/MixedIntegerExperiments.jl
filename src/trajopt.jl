@@ -45,17 +45,10 @@ end
 
 immutable MIQPTrajOptDiagnostics{A<:AbstractArray}
     solvetime::Float64
-    zx_constraint_violations::A
-    xz_constraint_violations::A
+    total_torque_constraint_violation::A
 end
 
-constraint_violation_norm(diagnostics::MIQPTrajOptDiagnostics, p = 2) = norm([vec(diagnostics.zx_constraint_violations); vec(diagnostics.xz_constraint_violations)], p)
-
-function MIQPTrajOptDiagnostics(solvetime::Float64, ss, fs, wzxs, wxzs)
-    zx_constraint_violations = AxisArray(wzxs .- (ss[:z] .* fs[:x]), wzxs.axes)
-    xz_constraint_violations = AxisArray(wxzs .- (ss[:x] .* fs[:z]), wxzs.axes)
-    MIQPTrajOptDiagnostics(solvetime, zx_constraint_violations, xz_constraint_violations)
-end
+constraint_violation_norm(diagnostics::MIQPTrajOptDiagnostics, p = 2) = vecnorm(diagnostics.total_torque_constraint_violation, p)
 
 function miqp_trajopt{E<:EnvironmentRegion}(robot::BoxRobotWithRotation2D, environment::AbstractVector{E},
         initialstate::BoxRobotWithRotation2DState, params::MIQPTrajOptParams)
@@ -191,7 +184,7 @@ function miqp_trajopt{E<:EnvironmentRegion}(robot::BoxRobotWithRotation2D, envir
             setupperbound.(s, smax)
             if bilinearmethod == :HRepConvexHull
                 srange = AxisArray(linspace.(smin, smax, disc_level), coords)
-                fmin, fmax = getlowerbound(f), getupperbound(f)
+                fmin, fmax = AxisArray(getlowerbound.(f), coords), AxisArray(getupperbound.(f), coords)
                 piecewise_mccormick_envelope_constraints(model, s[:x], f[:z], wxz, srange[:x], fmin[:z]..fmax[:z])
                 piecewise_mccormick_envelope_constraints(model, s[:z], f[:x], wzx, srange[:z], fmin[:x]..fmax[:x])
             else
@@ -275,7 +268,11 @@ function miqp_trajopt{E<:EnvironmentRegion}(robot::BoxRobotWithRotation2D, envir
     inputs = AxisArray(map(n -> Dict(contacts[i] => createinput(contacts(i), steps(n)) for i = 1 : ncontacts), 1 : nsteps), steps)
 
     # diagnostics
-    diagnostics = MIQPTrajOptDiagnostics(solvetime, getvalue(ss), getvalue(fs), getvalue(wzxs), getvalue(wxzs))
+    zx_constraint_violations = getvalue(AxisArray(wzxs .- (ss[:z] .* fs[:x]), wzxs.axes))
+    xz_constraint_violations = getvalue(AxisArray(wxzs .- (ss[:x] .* fs[:z]), wxzs.axes))
+    torque_constraint_violations = AxisArray(vec(sum((zx_constraint_violations - xz_constraint_violations), 1)), steps) # TODO: use Axes
+
+    diagnostics = MIQPTrajOptDiagnostics(solvetime, torque_constraint_violations)
 
     states, inputs, diagnostics
 end
