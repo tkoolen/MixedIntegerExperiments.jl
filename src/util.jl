@@ -28,6 +28,8 @@ end
 
 JuMP.getvalue(A::AxisArray) = AxisArray(JuMP.getvalue(A.data), A.axes)
 
+cross2(x, y) = x[2] * y[1] - x[1] * y[2]
+
 # TODO: use in test:
 # function mccormick_envelope_constraints(model::Model, w::Variable, u::Variable, v::Variable, umin, umax)
 #     # convex approximation of w == u * v for u ∈ [umin, umax], v ∈ [0, 1]

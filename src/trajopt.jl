@@ -1,7 +1,7 @@
 @with_kw immutable MIQPTrajOptParams
     nsteps::Int = 10
     Δt::Float64 = 0.1
-    bilinearmethod::Symbol = :Logarithmic1D
+    multilinearmethod::Symbol = :Logarithmic1D
     disc_level::Int = 9
     verbose::Bool = true
 end
@@ -54,7 +54,7 @@ function miqp_trajopt{E<:EnvironmentRegion}(robot::BoxRobotWithRotation2D, envir
         initialstate::BoxRobotWithRotation2DState, params::MIQPTrajOptParams)
     nsteps = params.nsteps
     h = params.Δt
-    bilinearmethod = params.bilinearmethod
+    multilinearmethod = params.multilinearmethod
     disc_level = params.disc_level
 
     coords = Axis{:coord}([:x, :z])
@@ -154,11 +154,55 @@ function miqp_trajopt{E<:EnvironmentRegion}(robot::BoxRobotWithRotation2D, envir
         end)
     end
 
+    # sum of forces
     for n = 1 : nsteps
         @constraints(model, begin
             Fs[steps(n)] .== m * g + sum(fs[steps(n), contacts(i)] for i = 1 : length(contacts))
-            Ts[steps(n)] == sum(wzxs[steps(n), contacts(i)] - wxzs[steps(n), contacts(i)] for i = 1 : length(contacts))
         end)
+    end
+
+    # sum of torques
+    if true
+        total_torque = (args...) -> begin
+            # split up into `s` part (contact locations w.r.t. CoM) and `f` part (contact forces)
+            n = div(length(args), 2)
+            ssvec = [args[i] for i = 1 : n]
+            fsvec = [args[i] for i = n + 1 : 2 * n]
+
+            # reconstruct AxisArrays
+            ss = AxisArray(reshape(ssvec, length(coords), length(contacts)), coords, contacts)
+            fs = AxisArray(reshape(fsvec, length(coords), length(contacts)), coords, contacts)
+
+            # compute total torque
+            T = promote_type(eltype(ss), eltype(fs))
+            τ = zero(T)
+            for i = 1 : length(contacts)
+                s = ss[contacts(i)]
+                f = fs[contacts(i)]
+                τ += cross2(s, f)
+            end
+            τ
+        end
+
+        for n = 1 : nsteps
+            T = Ts[steps(n)]
+            ss_n = ss[steps(n)]
+            fs_n = fs[steps(n)]
+            vars = [vec(ss_n); vec(fs_n)]
+            l = getlowerbound(vars)
+            u = getupperbound(vars)
+            hr = MultilinearOpt.HyperRectangle(tuple(l...), tuple(u...))
+            mlf = MultilinearFunction(hr, total_torque)
+            disc = Discretization(linspace.(l, u, disc_level)...)
+            Tbilin = outerapproximate(model, tuple(vars...), mlf, disc, multilinearmethod)
+            @constraint(model, T == Tbilin)
+        end
+    else
+        for n = 1 : nsteps
+            @constraints(model, begin
+                Ts[steps(n)] == sum(wzxs[steps(n), contacts(i)] - wxzs[steps(n), contacts(i)] for i = 1 : length(contacts))
+            end)
+        end
     end
 
     # contact point dynamics
@@ -182,7 +226,7 @@ function miqp_trajopt{E<:EnvironmentRegion}(robot::BoxRobotWithRotation2D, envir
             f = fs[contacts(i), steps(n)]
             setlowerbound.(s, smin)
             setupperbound.(s, smax)
-            if bilinearmethod == :HRepConvexHull
+            if multilinearmethod == :HRepConvexHull
                 srange = AxisArray(linspace.(smin, smax, disc_level), coords)
                 fmin, fmax = AxisArray(getlowerbound.(f), coords), AxisArray(getupperbound.(f), coords)
                 piecewise_mccormick_envelope_constraints(model, s[:x], f[:z], wxz, srange[:x], fmin[:z]..fmax[:z])
@@ -232,8 +276,8 @@ function miqp_trajopt{E<:EnvironmentRegion}(robot::BoxRobotWithRotation2D, envir
     @objective(model, Min, 1e3 * sum(Γ) + 1e-3 * vecdot(Fs, Fs) + 1e-5 * vecdot(fs, fs) + 1e-2 * vecdot(δs, δs) + vecdot(θs, θs))
 
     # relax bilinear constraints
-    if bilinearmethod != :HRepConvexHull # just to make sure, but probably not even necessary to do this check
-        relaxbilinear!(model, method = bilinearmethod, disc_level = disc_level)
+    if multilinearmethod != :HRepConvexHull # just to make sure, but probably not even necessary to do this check
+        relaxbilinear!(model, method = multilinearmethod, disc_level = disc_level)
     end
 
     # solve
