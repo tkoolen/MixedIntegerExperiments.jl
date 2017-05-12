@@ -11,7 +11,7 @@ function piecewise_mccormick_envelope_constraints(model::Model, u::Variable, v::
     vars = [u; v; w]
     if length(urange) == 2
         envelope = mccormick_envelope(model, u, v, w, first(urange)..last(urange), vrange)
-        hrep_to_constraints(model, hr, vars)
+        polyhedron_constraints(model, envelope, vars)
         nothing
     else
         N = length(urange) - 1
