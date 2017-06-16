@@ -27,3 +27,13 @@ end
 function Base.convert{B<:BoxRobots.BoxRobotInput, C<:ContactPointInput}(::Type{B}, inputs::Dict{Symbol, C})
     BoxRobots.BoxRobotInput(Dict(key => BoxRobots.LimbInput(val) for (key, val) in inputs))
 end
+
+# function Base.convert{S<:BoxRobots.Surface, N}(::Type{S}, region::EnvironmentRegion{N, Float64})
+#     hrep = region.position # TODO
+#     BoxRobots.Surface{N}(hrep)
+# end
+#
+# function Base.convert{E<:BoxRobots.Environment, N}(::Type{E}, environment::Vector{EnvironmentRegion{N, Float64}})
+#     surfaces = map(x -> convert(BoxRobots.Surface{N}, x), environment)
+#     BoxRobots.Environment(surfaces)
+# end

@@ -210,7 +210,7 @@ function miqp_trajopt{E<:EnvironmentRegion}(robot::BoxRobotWithRotation2D, envir
 
     # final conditions
     @constraints(model, begin
-        rs[steps(length(steps))] .== [0.81; 0.9]
+        # rs[steps(length(steps))] .== [0.81; 0.9]
         θs[steps(length(steps))] == 0
         ṙs[steps(length(steps))] .== 0
         ωs[steps(length(steps))] == 0
