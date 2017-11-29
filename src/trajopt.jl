@@ -76,7 +76,11 @@ function miqp_trajopt{E<:EnvironmentRegion}(robot::BoxRobotWithRotation2D, envir
     m = robot.m
     g = robot.g
 
-    model = Model(solver = GurobiSolver(Presolve = 0, OutputFlag = Int(params.verbose)))
+    model = if bilinearmethod == :minlp
+        Model(solver = OsilSolver(solver = "couenne"))
+    else
+        Model(solver = GurobiSolver(Presolve = 0, OutputFlag = Int(params.verbose)))
+    end
 
     rs = @axis_variable(model, r[coords, steps])
     θs = @axis_variable(model, θ[steps])
@@ -234,7 +238,7 @@ function miqp_trajopt{E<:EnvironmentRegion}(robot::BoxRobotWithRotation2D, envir
     @objective(model, Min, 1e3 * sum(Γ) + 1e-3 * vecdot(Fs, Fs) + 1e-5 * vecdot(fs, fs) + 1e-2 * vecdot(δs, δs) + vecdot(θs, θs))
 
     # relax bilinear constraints
-    if bilinearmethod != :HRepConvexHull # just to make sure, but probably not even necessary to do this check
+    if bilinearmethod ∉ [:HRepConvexHull; :minlp]
         relaxbilinear!(model, method = bilinearmethod, disc_level = disc_level)
     end
 

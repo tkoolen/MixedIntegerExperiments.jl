@@ -2,6 +2,7 @@ julia 0.5
 IJulia 1.4.1
 JuMP 0.15.1
 Gurobi 0.3.0
+CoinOptServices # need master
 BenchmarkTools 0.0.7
 Plots 0.10.3
 Polyhedra 0.1.3

@@ -2,6 +2,7 @@ module MixedIntegerExperiments
 
 using JuMP
 using Gurobi
+using CoinOptServices
 using MultilinearOpt
 using Polyhedra, CDDLib
 using Plots
