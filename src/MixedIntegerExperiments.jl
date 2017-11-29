@@ -7,7 +7,6 @@ using Polyhedra, CDDLib
 using Plots
 using DrakeVisualizer
 using ColorTypes
-using FixedSizeArrays
 using AxisArrayVariables
 using AxisArrays
 using StaticArrays
@@ -20,7 +19,7 @@ include("mccormick.jl")
 include("plotting.jl")
 include("shouldbeelsewhere.jl")
 include("trajopt.jl")
-include("boxrobotsinterop.jl")
+# include("boxrobotsinterop.jl")
 
 export
     RegionDescription,

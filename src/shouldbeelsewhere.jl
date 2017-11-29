@@ -1,7 +1,7 @@
 export visualize_environment
 
 using RigidBodyDynamics
-using DrakeVisualizer, CoordinateTransformations, FixedSizeArrays, ColorTypes, Rotations
+using DrakeVisualizer, CoordinateTransformations, ColorTypes, Rotations
 using RigidBodyDynamics.Contact
 
 function visualize_environment(mechanism::Mechanism, vis::Visualizer)

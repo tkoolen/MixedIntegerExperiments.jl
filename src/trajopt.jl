@@ -46,6 +46,8 @@ end
 immutable MIQPTrajOptDiagnostics{A<:AbstractArray}
     solvetime::Float64
     total_torque_constraint_violation::A
+    num_continuous_variables::Int
+    num_binary_variables::Int
 end
 
 constraint_violation_norm(diagnostics::MIQPTrajOptDiagnostics, p = 2) = vecnorm(diagnostics.total_torque_constraint_violation, p)
@@ -272,7 +274,9 @@ function miqp_trajopt{E<:EnvironmentRegion}(robot::BoxRobotWithRotation2D, envir
     xz_constraint_violations = getvalue(AxisArray(wxzs .- (ss[:x] .* fs[:z]), wxzs.axes))
     torque_constraint_violations = AxisArray(vec(sum((zx_constraint_violations - xz_constraint_violations), 1)), steps) # TODO: use Axes
 
-    diagnostics = MIQPTrajOptDiagnostics(solvetime, torque_constraint_violations)
+    num_continuous_variables = sum(model.colCat .== :Cont)
+    num_binary_variables = sum(model.colCat .== :Bin)
+    diagnostics = MIQPTrajOptDiagnostics(solvetime, torque_constraint_violations, num_continuous_variables, num_binary_variables)
 
     states, inputs, diagnostics
 end
