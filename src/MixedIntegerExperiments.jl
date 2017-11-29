@@ -40,6 +40,6 @@ export
     plot_allowable_forces,
     plot_kinematic_regions,
     miqp_trajopt,
-    constraint_violation_norm
+    rms_constraint_violation
 
 end # module

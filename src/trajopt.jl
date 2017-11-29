@@ -50,7 +50,10 @@ immutable MIQPTrajOptDiagnostics{A<:AbstractArray}
     num_binary_variables::Int
 end
 
-constraint_violation_norm(diagnostics::MIQPTrajOptDiagnostics, p = 2) = vecnorm(diagnostics.total_torque_constraint_violation, p)
+function rms_constraint_violation(diagnostics::MIQPTrajOptDiagnostics)
+    n = length(diagnostics.total_torque_constraint_violation)
+    sqrt(1 / n * sum(x^2 for x in diagnostics.total_torque_constraint_violation))
+end
 
 function miqp_trajopt{E<:EnvironmentRegion}(robot::BoxRobotWithRotation2D, environment::AbstractVector{E},
         initialstate::BoxRobotWithRotation2DState, params::MIQPTrajOptParams)
