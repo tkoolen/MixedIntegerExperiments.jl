@@ -2,7 +2,6 @@ module MixedIntegerExperiments
 
 using JuMP
 using Gurobi
-using CoinOptServices
 using MultilinearOpt
 using Polyhedra, CDDLib
 using Plots
@@ -20,7 +19,6 @@ include("mccormick.jl")
 include("plotting.jl")
 include("shouldbeelsewhere.jl")
 include("trajopt.jl")
-# include("boxrobotsinterop.jl")
 
 export
     RegionDescription,

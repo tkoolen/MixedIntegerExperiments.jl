@@ -1,4 +1,4 @@
-@with_kw immutable MIQPTrajOptParams
+@with_kw struct MIQPTrajOptParams
     nsteps::Int = 10
     Δt::Float64 = 0.1
     bilinearmethod::Symbol = :Logarithmic1D
@@ -6,12 +6,12 @@
     verbose::Bool = true
 end
 
-immutable ContactPointDescription{N}
+struct ContactPointDescription{N}
     max_vel::Float64
     kinematic_region::SimpleVRepresentation{N,Float64}
 end
 
-immutable BoxRobotWithRotation2D
+struct BoxRobotWithRotation2D
     θmax::Float64
     I::Float64
     m::Float64
@@ -25,17 +25,17 @@ end
 # gravitational_acceleration(robot::BoxRobotWithRotation2D) = robot.g
 # limb_descriptions(robot::BoxRobotWithRotation2D) = robot.contact_point_descriptions
 
-immutable ContactPointState{N, T}
+struct ContactPointState{N, T}
     pos::SVector{N, T}
     # TODO: contact info
 end
 
-immutable ContactPointInput{N, T}
+struct ContactPointInput{N, T}
     vel::SVector{N, T}
     force::SVector{N, T}
 end
 
-immutable BoxRobotWithRotation2DState{T}
+struct BoxRobotWithRotation2DState{T}
     θ::T
     ω::T
     r::SVector{2, T}
@@ -43,7 +43,7 @@ immutable BoxRobotWithRotation2DState{T}
     contact_point_states::Dict{Symbol, ContactPointState{2, T}}
 end
 
-immutable MIQPTrajOptDiagnostics{A<:AbstractArray}
+struct MIQPTrajOptDiagnostics{A<:AbstractArray}
     solvetime::Float64
     total_torque_constraint_violation::A
     num_continuous_variables::Int
